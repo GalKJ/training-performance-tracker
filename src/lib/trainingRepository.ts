@@ -1,6 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import type { AddLiftEntryInput, Exercise, LiftEntry } from "../types/domain";
+import type {
+  AddLiftEntryInput,
+  Exercise,
+  LiftEntry,
+  UpdateLiftEntryInput,
+} from "../types/domain";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 type CachePayload = {
@@ -235,4 +240,109 @@ export const addLiftEntry = async (input: AddLiftEntryInput): Promise<void> => {
     exercises,
     liftEntries: [newLiftEntry, ...snapshot.liftEntries],
   });
+};
+
+export const updateLiftEntry = async (
+  input: UpdateLiftEntryInput,
+): Promise<void> => {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const result = await supabase
+        .from("lift_entries")
+        .update({
+          weight_kg: input.weightKg,
+          reps: input.reps,
+          performed_at: input.performedAt,
+          notes: input.notes ?? null,
+        })
+        .eq("id", input.id);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return;
+    } catch {
+      // Fall through to cache write when remote is unavailable.
+    }
+  }
+
+  const snapshot = await fallbackData();
+  const updatedEntries = snapshot.liftEntries.map((entry) =>
+    entry.id === input.id
+      ? {
+          ...entry,
+          weightKg: input.weightKg,
+          reps: input.reps,
+          performedAt: input.performedAt,
+          notes: input.notes ?? null,
+        }
+      : entry,
+  );
+
+  await writeCache({ exercises: snapshot.exercises, liftEntries: updatedEntries });
+};
+
+export const deleteLiftEntry = async (id: string): Promise<void> => {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const result = await supabase
+        .from("lift_entries")
+        .delete()
+        .eq("id", id);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return;
+    } catch {
+      // Fall through to cache write when remote is unavailable.
+    }
+  }
+
+  const snapshot = await fallbackData();
+  const updatedEntries = snapshot.liftEntries.filter(
+    (entry) => entry.id !== id,
+  );
+
+  await writeCache({ exercises: snapshot.exercises, liftEntries: updatedEntries });
+};
+
+export const deleteExercise = async (id: string): Promise<void> => {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const entriesResult = await supabase
+        .from("lift_entries")
+        .delete()
+        .eq("exercise_id", id);
+
+      if (entriesResult.error) {
+        throw entriesResult.error;
+      }
+
+      const exerciseResult = await supabase
+        .from("exercises")
+        .delete()
+        .eq("id", id);
+
+      if (exerciseResult.error) {
+        throw exerciseResult.error;
+      }
+
+      return;
+    } catch {
+      // Fall through to cache write when remote is unavailable.
+    }
+  }
+
+  const snapshot = await fallbackData();
+  const updatedEntries = snapshot.liftEntries.filter(
+    (entry) => entry.exerciseId !== id,
+  );
+  const updatedExercises = snapshot.exercises.filter(
+    (exercise) => exercise.id !== id,
+  );
+
+  await writeCache({ exercises: updatedExercises, liftEntries: updatedEntries });
 };

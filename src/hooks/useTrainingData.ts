@@ -1,7 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { AddLiftEntryInput, Exercise, LiftEntry } from "../types/domain";
-import { addLiftEntry, getTrainingData } from "../lib/trainingRepository";
+import type {
+  AddLiftEntryInput,
+  Exercise,
+  LiftEntry,
+  UpdateLiftEntryInput,
+} from "../types/domain";
+import {
+  addLiftEntry,
+  deleteLiftEntry,
+  deleteExercise,
+  getTrainingData,
+  updateLiftEntry,
+} from "../lib/trainingRepository";
 
 type UseTrainingDataResult = {
   exercises: Exercise[];
@@ -10,6 +21,9 @@ type UseTrainingDataResult = {
   error: string | null;
   refresh: () => Promise<void>;
   addEntry: (input: AddLiftEntryInput) => Promise<void>;
+  updateEntry: (input: UpdateLiftEntryInput) => Promise<void>;
+  deleteEntry: (id: string) => Promise<void>;
+  deleteExerciseById: (id: string) => Promise<void>;
 };
 
 export const useTrainingData = (): UseTrainingDataResult => {
@@ -45,6 +59,30 @@ export const useTrainingData = (): UseTrainingDataResult => {
     [refresh],
   );
 
+  const updateEntry = useCallback(
+    async (input: UpdateLiftEntryInput) => {
+      await updateLiftEntry(input);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const deleteEntry = useCallback(
+    async (id: string) => {
+      await deleteLiftEntry(id);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const deleteExerciseById = useCallback(
+    async (id: string) => {
+      await deleteExercise(id);
+      await refresh();
+    },
+    [refresh],
+  );
+
   useEffect(() => {
     refresh().catch(() => {
       // Refresh handles state.
@@ -52,7 +90,27 @@ export const useTrainingData = (): UseTrainingDataResult => {
   }, [refresh]);
 
   return useMemo(
-    () => ({ exercises, liftEntries, isLoading, error, refresh, addEntry }),
-    [addEntry, error, exercises, isLoading, liftEntries, refresh],
+    () => ({
+      exercises,
+      liftEntries,
+      isLoading,
+      error,
+      refresh,
+      addEntry,
+      updateEntry,
+      deleteEntry,
+      deleteExerciseById,
+    }),
+    [
+      addEntry,
+      deleteEntry,
+      deleteExerciseById,
+      error,
+      exercises,
+      isLoading,
+      liftEntries,
+      refresh,
+      updateEntry,
+    ],
   );
 };

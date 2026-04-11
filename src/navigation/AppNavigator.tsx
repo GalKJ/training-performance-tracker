@@ -1,12 +1,20 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { monoColors } from "../theme/mono";
 import { WorkoutScreen } from "../screens/WorkoutScreen";
 import { HistoryScreen } from "../screens/HistoryScreen";
+import { ExerciseDetailScreen } from "../screens/ExerciseDetailScreen";
 import { MetricsScreen } from "../screens/MetricsScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
+
+export type HistoryStackParamList = {
+  HistoryList: undefined;
+  ExerciseDetail: { exerciseId: string; exerciseName: string };
+};
 
 export type RootTabParamList = {
   Workout: undefined;
@@ -16,21 +24,59 @@ export type RootTabParamList = {
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const HistoryStack = createNativeStackNavigator<HistoryStackParamList>();
 
 const HeaderTitle = () => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View className="flex-row items-center justify-between px-4 py-3">
+    <View
+      style={{ paddingTop: insets.top }}
+      className="bg-mono-background px-5 pb-3 pt-3"
+    >
       <Text
         style={{
           fontFamily: "Inter_900Black",
-          fontSize: 24,
-          letterSpacing: -0.8,
+          fontSize: 28,
+          letterSpacing: -1,
         }}
         className="text-mono-primary"
       >
         PERFORMANCE
       </Text>
     </View>
+  );
+};
+
+const HistoryStackNavigator = () => {
+  return (
+    <HistoryStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: monoColors.background },
+        headerStyle: { backgroundColor: monoColors.background },
+        headerShadowVisible: false,
+        headerTintColor: monoColors.primary,
+      }}
+    >
+      <HistoryStack.Screen name="HistoryList" component={HistoryScreen} />
+      <HistoryStack.Screen
+        name="ExerciseDetail"
+        component={ExerciseDetailScreen}
+        options={({ route }) => ({
+          headerShown: true,
+          title: route.params.exerciseName,
+          headerStyle: { backgroundColor: monoColors.background },
+          headerTintColor: monoColors.primary,
+          headerTitleStyle: {
+            fontFamily: "Inter_700Bold",
+            fontSize: 18,
+            letterSpacing: -0.5,
+          },
+          headerShadowVisible: false,
+        })}
+      />
+    </HistoryStack.Navigator>
   );
 };
 
@@ -43,18 +89,21 @@ export const AppNavigator = () => {
           header: () => <HeaderTitle />,
           tabBarActiveTintColor: monoColors.primary,
           tabBarInactiveTintColor: monoColors.secondary,
+          tabBarIcon: () => null,
+          tabBarIconStyle: { display: "none" },
           tabBarStyle: {
             backgroundColor: monoColors.background,
-            borderTopWidth: 0,
-            height: 70,
-            paddingTop: 6,
-            paddingBottom: 8,
+            borderTopWidth: 1,
+            borderTopColor: monoColors.surfaceContainer,
+            height: 56,
+            paddingTop: 10,
+            paddingBottom: 10,
           },
           tabBarLabelStyle: {
             fontFamily: "Inter_700Bold",
-            fontSize: 10,
+            fontSize: 11,
             textTransform: "uppercase",
-            letterSpacing: 1,
+            letterSpacing: 1.2,
           },
           sceneStyle: {
             backgroundColor: monoColors.background,
@@ -62,7 +111,11 @@ export const AppNavigator = () => {
         }}
       >
         <Tab.Screen name="Workout" component={WorkoutScreen} />
-        <Tab.Screen name="History" component={HistoryScreen} />
+        <Tab.Screen
+          name="History"
+          component={HistoryStackNavigator}
+          options={{ headerShown: false }}
+        />
         <Tab.Screen name="Metrics" component={MetricsScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
       </Tab.Navigator>

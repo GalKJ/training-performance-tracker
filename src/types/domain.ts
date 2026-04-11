@@ -20,3 +20,11 @@ export type AddLiftEntryInput = {
   performedAt: string;
   notes?: string;
 };
+
+export type UpdateLiftEntryInput = {
+  id: string;
+  weightKg: number;
+  reps: number;
+  performedAt: string;
+  notes?: string;
+};

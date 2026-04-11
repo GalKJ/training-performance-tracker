@@ -7,23 +7,27 @@ export const ProfileScreen = () => {
   const { exercises, liftEntries } = useTrainingData();
 
   return (
-    <View className="flex-1 bg-mono-background px-4 pt-4">
-      <View className="rounded-sm bg-mono-surface px-4 py-4">
+    <View className="flex-1 bg-mono-background px-5 pt-2">
+      <View className="rounded-sm bg-mono-surface px-4 py-5">
         <Text
           style={{
             fontFamily: "Inter_700Bold",
-            fontSize: 12,
-            letterSpacing: 0.5,
+            fontSize: 11,
+            letterSpacing: 0.8,
           }}
           className="text-mono-secondary"
         >
           BACKEND MODE
         </Text>
         <Text
-          style={{ fontFamily: "Inter_800ExtraBold", fontSize: 26 }}
+          style={{
+            fontFamily: "Inter_900Black",
+            fontSize: 24,
+            letterSpacing: -0.5,
+          }}
           className="mt-1 text-mono-primary"
         >
-          {isSupabaseConfigured ? "SUPABASE CLOUD" : "LOCAL CACHE FALLBACK"}
+          {isSupabaseConfigured ? "SUPABASE CLOUD" : "LOCAL CACHE\nFALLBACK"}
         </Text>
         <Text
           style={{ fontFamily: "Inter_500Medium", fontSize: 13 }}
@@ -34,26 +38,32 @@ export const ProfileScreen = () => {
         </Text>
       </View>
 
-      <View className="mt-4 rounded-sm bg-mono-surfaceContainerLow px-4 py-4">
+      <View className="mt-3 rounded-sm bg-mono-surface px-4 py-5">
         <Text
           style={{
             fontFamily: "Inter_700Bold",
-            fontSize: 12,
-            letterSpacing: 0.5,
+            fontSize: 11,
+            letterSpacing: 0.8,
           }}
           className="text-mono-secondary"
         >
           DATA STATUS
         </Text>
         <Text
-          style={{ fontFamily: "Inter_600SemiBold", fontSize: 15 }}
+          style={{
+            fontFamily: "Inter_700Bold",
+            fontSize: 15,
+          }}
           className="mt-2 text-mono-primary"
         >
           Exercises: {exercises.length}
         </Text>
         <Text
-          style={{ fontFamily: "Inter_600SemiBold", fontSize: 15 }}
-          className="text-mono-primary"
+          style={{
+            fontFamily: "Inter_700Bold",
+            fontSize: 15,
+          }}
+          className="mt-1 text-mono-primary"
         >
           Lift Entries: {liftEntries.length}
         </Text>

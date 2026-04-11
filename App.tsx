@@ -1,3 +1,4 @@
+import "./global.css";
 import { StatusBar } from "expo-status-bar";
 import {
   Inter_400Regular,

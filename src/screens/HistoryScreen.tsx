@@ -8,7 +8,10 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
+import type { HistoryStackParamList } from "../navigation/AppNavigator";
 import { useTrainingData } from "../hooks/useTrainingData";
 import { monoColors } from "../theme/mono";
 
@@ -24,6 +27,8 @@ const formatShortDate = (isoDate: string): string => {
 };
 
 export const HistoryScreen = () => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<HistoryStackParamList>>();
   const { exercises, liftEntries, isLoading, error, addEntry, refresh } =
     useTrainingData();
   const [query, setQuery] = useState("");
@@ -107,14 +112,25 @@ export const HistoryScreen = () => {
   };
 
   return (
-    <View className="flex-1 bg-mono-background px-4 pb-6">
+    <View className="flex-1 bg-mono-background px-5 pb-6">
+      <Text
+        style={{
+          fontFamily: "Inter_900Black",
+          fontSize: 32,
+          letterSpacing: -0.8,
+        }}
+        className="mt-2 text-mono-primary"
+      >
+        EXERCISE{"\n"}HISTORY
+      </Text>
+
       <TextInput
         value={query}
         onChangeText={setQuery}
         placeholder="Search exercises"
         placeholderTextColor={monoColors.secondary}
-        style={{ fontFamily: "Inter_500Medium" }}
-        className="mt-3 rounded-sm bg-mono-surfaceContainer px-3 py-3 text-mono-primary"
+        style={{ fontFamily: "Inter_500Medium", fontSize: 14 }}
+        className="mt-4 rounded-sm bg-mono-surfaceContainer px-4 py-3 text-mono-primary"
       />
 
       {isLoading ? (
@@ -130,36 +146,59 @@ export const HistoryScreen = () => {
           contentContainerStyle={{
             paddingTop: 16,
             paddingBottom: 110,
-            gap: 12,
+            gap: 10,
           }}
           renderItem={({ item }) => (
-            <View className="rounded-sm bg-mono-surface px-3 py-3">
-              <View className="flex-row items-start justify-between">
+            <Pressable
+              onPress={() =>
+                navigation.navigate("ExerciseDetail", {
+                  exerciseId: item.id,
+                  exerciseName: item.name,
+                })
+              }
+              className="rounded-sm bg-mono-surface px-4 py-4"
+            >
+              <View className="flex-row items-center justify-between">
                 <Text
-                  style={{ fontFamily: "Inter_700Bold", fontSize: 18 }}
-                  className="text-mono-primary"
+                  style={{
+                    fontFamily: "Inter_700Bold",
+                    fontSize: 16,
+                    letterSpacing: 0.3,
+                    textTransform: "uppercase",
+                  }}
+                  className="flex-1 text-mono-primary"
                 >
                   {item.name}
                 </Text>
                 <View className="items-end">
                   <Text
-                    style={{ fontFamily: "Inter_800ExtraBold", fontSize: 22 }}
+                    style={{
+                      fontFamily: "Inter_900Black",
+                      fontSize: 28,
+                      letterSpacing: -0.6,
+                    }}
                     className="text-mono-primary"
                   >
-                    {item.maxWeightKg > 0 ? `${item.maxWeightKg} KG` : "-- KG"}
+                    {item.maxWeightKg > 0
+                      ? `${item.maxWeightKg}`
+                      : "--"}
                   </Text>
                   <Text
-                    style={{ fontFamily: "Inter_500Medium", fontSize: 12 }}
-                    className="text-mono-secondary"
+                    style={{
+                      fontFamily: "Inter_700Bold",
+                      fontSize: 10,
+                      letterSpacing: 0.5,
+                    }}
+                    className="-mt-1 text-mono-secondary"
                   >
-                    {item.lastSessionDate}
+                    KG
                   </Text>
                 </View>
               </View>
-            </View>
+            </Pressable>
           )}
           ListEmptyComponent={
-            <View className="rounded-sm bg-mono-surfaceContainerLow px-3 py-4">
+            <View className="rounded-sm bg-mono-surfaceContainerLow px-4 py-4">
               <Text
                 style={{ fontFamily: "Inter_500Medium" }}
                 className="text-mono-secondary"
@@ -175,11 +214,7 @@ export const HistoryScreen = () => {
         onPress={() => setIsModalOpen(true)}
         className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-sm bg-mono-primary"
         style={{
-          shadowColor: "#000000",
-          shadowOpacity: 0.04,
-          shadowRadius: 32,
-          shadowOffset: { width: 0, height: 10 },
-          elevation: 6,
+          elevation: 4,
         }}
       >
         <Text

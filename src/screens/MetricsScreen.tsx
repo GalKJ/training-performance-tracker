@@ -89,12 +89,13 @@ export const MetricsScreen = () => {
   return (
     <ScrollView
       className="flex-1 bg-mono-background"
-      contentContainerStyle={{ padding: 16, paddingBottom: 30 }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 30 }}
     >
+      {/* Exercise selector */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 10 }}
+        contentContainerStyle={{ gap: 8, paddingVertical: 8 }}
       >
         {exercises.map((exercise) => {
           const isActive = selectedExercise?.id === exercise.id;
@@ -102,15 +103,15 @@ export const MetricsScreen = () => {
             <Pressable
               key={exercise.id}
               onPress={() => setSelectedExerciseId(exercise.id)}
-              className={`rounded-sm px-3 py-2 ${isActive ? "bg-mono-primary" : "bg-mono-surfaceContainer"}`}
+              className={`rounded-sm px-4 py-2 ${isActive ? "bg-mono-primary" : "bg-mono-surfaceContainer"}`}
             >
               <Text
                 style={{
                   fontFamily: "Inter_700Bold",
-                  fontSize: 12,
-                  letterSpacing: 0.5,
+                  fontSize: 11,
+                  letterSpacing: 0.8,
                 }}
-                className={isActive ? "text-white" : "text-mono-primary"}
+                className={isActive ? "text-mono-background" : "text-mono-primary"}
               >
                 {exercise.name.toUpperCase()}
               </Text>
@@ -119,74 +120,73 @@ export const MetricsScreen = () => {
         })}
       </ScrollView>
 
-      <View className="mt-5 rounded-sm bg-mono-surface px-3 py-4">
-        <Text
-          style={{
-            fontFamily: "Inter_700Bold",
-            fontSize: 13,
-            letterSpacing: 0.6,
-          }}
-          className="text-mono-secondary"
-        >
-          ESTIMATED 1RM
-        </Text>
-        <View className="mt-1 flex-row items-end gap-2">
-          <Text
-            style={{
-              fontFamily: "Inter_900Black",
-              fontSize: 54,
-              letterSpacing: -1.2,
-            }}
-            className="text-mono-primary"
-          >
-            {bestOneRm ? roundToNearestHalf(bestOneRm).toFixed(1) : "0.0"}
-          </Text>
-          <Text
-            style={{
-              fontFamily: "Inter_700Bold",
-              fontSize: 12,
-              letterSpacing: 0.6,
-            }}
-            className="mb-2 text-mono-secondary"
-          >
-            KG
-          </Text>
-        </View>
-      </View>
+      {/* Large exercise name */}
+      <Text
+        style={{
+          fontFamily: "Inter_900Black",
+          fontSize: 40,
+          letterSpacing: -1.2,
+          lineHeight: 42,
+        }}
+        className="mt-4 text-mono-primary"
+      >
+        {selectedExercise?.name.toUpperCase() ?? ""}
+      </Text>
 
-      <View className="mt-4 flex-row gap-3">
+      {/* Personal records row */}
+      <View className="mt-5 flex-row gap-3">
         {ranking.map((row) => (
           <View
             key={row.rank}
-            className="flex-1 rounded-sm bg-mono-surfaceContainerLow px-3 py-3"
+            className="flex-1 rounded-sm bg-mono-surface px-3 py-3"
           >
             <Text
               style={{
                 fontFamily: "Inter_700Bold",
-                fontSize: 11,
-                letterSpacing: 0.5,
+                fontSize: 10,
+                letterSpacing: 0.6,
               }}
               className="text-mono-secondary"
             >
-              {row.label} 0{row.rank}
+              {row.label.toUpperCase()} 0{row.rank}
             </Text>
             <Text
-              style={{ fontFamily: "Inter_800ExtraBold", fontSize: 22 }}
+              style={{
+                fontFamily: "Inter_900Black",
+                fontSize: 26,
+                letterSpacing: -0.5,
+              }}
               className="mt-1 text-mono-primary"
             >
-              {row.weight} KG
+              {row.weight}
             </Text>
             <Text
-              style={{ fontFamily: "Inter_500Medium", fontSize: 12 }}
-              className="text-mono-secondary"
+              style={{
+                fontFamily: "Inter_700Bold",
+                fontSize: 10,
+                letterSpacing: 0.5,
+              }}
+              className="-mt-0.5 text-mono-secondary"
             >
-              {row.reps} reps
+              KG
             </Text>
           </View>
         ))}
       </View>
 
-      <View className="mt-5 flex-row flex-wrap gap-2">
+      {/* 1-Rep Max Matrix */}
+      <Text
+        style={{
+          fontFamily: "Inter_700Bold",
+          fontSize: 11,
+          letterSpacing: 0.8,
+        }}
+        className="mt-6 text-mono-secondary"
+      >
+        1-REP MAX MATRIX
+      </Text>
+
+      <View className="mt-3 flex-row flex-wrap gap-2">
         {matrix.map((cell) => (
           <View
             key={cell.percentage}
@@ -195,7 +195,7 @@ export const MetricsScreen = () => {
             <Text
               style={{
                 fontFamily: "Inter_700Bold",
-                fontSize: 12,
+                fontSize: 11,
                 letterSpacing: 0.4,
               }}
               className="text-mono-secondary"
@@ -203,7 +203,11 @@ export const MetricsScreen = () => {
               {cell.percentage}%
             </Text>
             <Text
-              style={{ fontFamily: "Inter_800ExtraBold", fontSize: 20 }}
+              style={{
+                fontFamily: "Inter_900Black",
+                fontSize: 22,
+                letterSpacing: -0.4,
+              }}
               className="mt-1 text-mono-primary"
             >
               {cell.valueKg.toFixed(1)}
@@ -211,8 +215,8 @@ export const MetricsScreen = () => {
             <Text
               style={{
                 fontFamily: "Inter_700Bold",
-                fontSize: 10,
-                letterSpacing: 0.4,
+                fontSize: 9,
+                letterSpacing: 0.5,
               }}
               className="text-mono-secondary"
             >
