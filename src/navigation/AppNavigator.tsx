@@ -42,7 +42,7 @@ const HeaderTitle = () => {
         }}
         className="text-mono-primary"
       >
-        PERFORMANCE
+        TRAINING TRACKER
       </Text>
     </View>
   );
@@ -52,18 +52,22 @@ const HistoryStackNavigator = () => {
   return (
     <HistoryStack.Navigator
       screenOptions={{
-        headerShown: false,
         contentStyle: { backgroundColor: monoColors.background },
         headerStyle: { backgroundColor: monoColors.background },
         headerShadowVisible: false,
         headerTintColor: monoColors.primary,
       }}
     >
-      <HistoryStack.Screen name="HistoryList" component={HistoryScreen} />
+      <HistoryStack.Screen
+        name="HistoryList"
+        component={HistoryScreen}
+        options={{ headerShown: false }}
+      />
       <HistoryStack.Screen
         name="ExerciseDetail"
         component={ExerciseDetailScreen}
         options={({ route }) => ({
+          header: () => <HeaderTitle />,
           headerShown: true,
           title: route.params.exerciseName,
           headerStyle: { backgroundColor: monoColors.background },
@@ -111,11 +115,7 @@ export const AppNavigator = () => {
         }}
       >
         <Tab.Screen name="Workout" component={WorkoutScreen} />
-        <Tab.Screen
-          name="History"
-          component={HistoryStackNavigator}
-          options={{ headerShown: false }}
-        />
+        <Tab.Screen name="History" component={HistoryStackNavigator} />
         <Tab.Screen name="Metrics" component={MetricsScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
       </Tab.Navigator>
