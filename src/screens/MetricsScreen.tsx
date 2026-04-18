@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { useTrainingData } from "../hooks/useTrainingData";
 import { getBestOneRepMax, roundToNearestHalf } from "../lib/oneRm";
@@ -32,9 +33,15 @@ const buildRanking = (entries: LiftEntry[]) => {
 };
 
 export const MetricsScreen = () => {
-  const { exercises, liftEntries, isLoading } = useTrainingData();
+  const { exercises, liftEntries, isLoading, refresh } = useTrainingData();
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
     null,
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
   );
 
   const selectedExercise = useMemo(() => {
