@@ -15,43 +15,6 @@ type CachePayload = {
 
 const CACHE_KEY = "training-performance-tracker:v1";
 
-const demoExercises: Exercise[] = [
-  { id: "ex-1", name: "Back Squat", createdAt: "2026-01-08T09:00:00.000Z" },
-  { id: "ex-2", name: "Bench Press", createdAt: "2026-01-08T09:00:00.000Z" },
-  { id: "ex-3", name: "Deadlift", createdAt: "2026-01-08T09:00:00.000Z" },
-];
-
-const demoLiftEntries: LiftEntry[] = [
-  {
-    id: "lf-1",
-    exerciseId: "ex-1",
-    weightKg: 145,
-    reps: 3,
-    performedAt: "2026-03-18T17:10:00.000Z",
-  },
-  {
-    id: "lf-2",
-    exerciseId: "ex-1",
-    weightKg: 150,
-    reps: 2,
-    performedAt: "2026-03-21T18:20:00.000Z",
-  },
-  {
-    id: "lf-3",
-    exerciseId: "ex-2",
-    weightKg: 102.5,
-    reps: 4,
-    performedAt: "2026-03-19T17:50:00.000Z",
-  },
-  {
-    id: "lf-4",
-    exerciseId: "ex-3",
-    weightKg: 180,
-    reps: 2,
-    performedAt: "2026-03-22T16:30:00.000Z",
-  },
-];
-
 const buildId = (prefix: string): string => {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 };
@@ -98,9 +61,9 @@ const fallbackData = async (): Promise<CachePayload> => {
     return cached;
   }
 
-  const seeded = {
-    exercises: demoExercises,
-    liftEntries: demoLiftEntries,
+  const seeded: CachePayload = {
+    exercises: [],
+    liftEntries: [],
   };
 
   await writeCache(seeded);
