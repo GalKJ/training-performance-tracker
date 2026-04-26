@@ -123,7 +123,8 @@ export const getTrainingData = async (): Promise<CachePayload> => {
 
       await writeCache(remoteData);
       return remoteData;
-    } catch {
+    } catch (error) {
+      console.warn("[trainingRepository] getTrainingData falling back to cache:", error);
       return fallbackData();
     }
   }
@@ -179,8 +180,8 @@ export const addLiftEntry = async (input: AddLiftEntryInput): Promise<void> => {
       }
 
       return;
-    } catch {
-      // Fall through to cache write when remote is unavailable.
+    } catch (error) {
+      console.warn("[trainingRepository] addLiftEntry falling back to cache:", error);
     }
   }
 
@@ -225,8 +226,8 @@ export const updateLiftEntry = async (
       }
 
       return;
-    } catch {
-      // Fall through to cache write when remote is unavailable.
+    } catch (error) {
+      console.warn("[trainingRepository] updateLiftEntry falling back to cache:", error);
     }
   }
 
@@ -259,8 +260,8 @@ export const deleteLiftEntry = async (id: string): Promise<void> => {
       }
 
       return;
-    } catch {
-      // Fall through to cache write when remote is unavailable.
+    } catch (error) {
+      console.warn("[trainingRepository] deleteLiftEntry falling back to cache:", error);
     }
   }
 
@@ -294,8 +295,8 @@ export const deleteExercise = async (id: string): Promise<void> => {
       }
 
       return;
-    } catch {
-      // Fall through to cache write when remote is unavailable.
+    } catch (error) {
+      console.warn("[trainingRepository] deleteExercise falling back to cache:", error);
     }
   }
 
