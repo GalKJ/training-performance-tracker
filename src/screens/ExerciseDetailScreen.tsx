@@ -14,6 +14,7 @@ import type { HistoryStackParamList } from "../navigation/AppNavigator";
 import type { LiftEntry } from "../types/domain";
 import { useTrainingData } from "../hooks/useTrainingData";
 import { monoColors } from "../theme/mono";
+import { AddLiftEntryModal } from "../components/AddLiftEntryModal";
 
 type Props = NativeStackScreenProps<HistoryStackParamList, "ExerciseDetail">;
 
@@ -62,45 +63,25 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
 
   // Add modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addWeightKg, setAddWeightKg] = useState("");
-  const [addReps, setAddReps] = useState("");
-  const [addNotes, setAddNotes] = useState("");
-  const [isAddSubmitting, setIsAddSubmitting] = useState(false);
 
-  const resetAddForm = useCallback(() => {
-    setAddWeightKg("");
-    setAddReps("");
-    setAddNotes("");
-  }, []);
-
-  const submitAddEntry = useCallback(async () => {
-    const parsedWeight = Number(addWeightKg);
-    const parsedReps = Number(addReps);
-
-    if (
-      !Number.isFinite(parsedWeight) ||
-      parsedWeight <= 0 ||
-      !Number.isFinite(parsedReps) ||
-      parsedReps <= 0
-    ) {
-      return;
-    }
-
-    setIsAddSubmitting(true);
-    try {
+  const handleAddEntry = useCallback(
+    async (values: {
+      exerciseName: string;
+      weightKg: number;
+      reps: number;
+      notes: string;
+    }) => {
       await addEntry({
-        exerciseName,
-        weightKg: parsedWeight,
-        reps: parsedReps,
+        exerciseName: values.exerciseName,
+        weightKg: values.weightKg,
+        reps: values.reps,
         performedAt: new Date().toISOString(),
-        notes: addNotes,
+        notes: values.notes,
       });
       setIsAddModalOpen(false);
-      resetAddForm();
-    } finally {
-      setIsAddSubmitting(false);
-    }
-  }, [addWeightKg, addReps, addNotes, exerciseName, addEntry, resetAddForm]);
+    },
+    [addEntry],
+  );
 
   const handleLongPress = useCallback((entry: LiftEntry) => {
     setSelectedEntry(entry);
@@ -304,92 +285,12 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
       </Pressable>
 
       {/* Add entry modal */}
-      <Modal
+      <AddLiftEntryModal
         visible={isAddModalOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setIsAddModalOpen(false)}
-      >
-        <View className="flex-1 justify-end bg-black/25">
-          <View className="rounded-t-xl bg-mono-background px-4 pb-8 pt-5">
-            <Text
-              style={{ fontFamily: "Inter_800ExtraBold", fontSize: 24 }}
-              className="text-mono-primary"
-            >
-              Add Lift Entry
-            </Text>
-
-            <View className="mt-2 rounded-sm bg-mono-surfaceContainerLow px-3 py-2">
-              <Text
-                style={{ fontFamily: "Inter_700Bold", fontSize: 14 }}
-                className="text-mono-secondary"
-              >
-                {exerciseName}
-              </Text>
-            </View>
-
-            <View className="mt-4 gap-3">
-              <View className="flex-row gap-3">
-                <TextInput
-                  value={addWeightKg}
-                  onChangeText={setAddWeightKg}
-                  placeholder="Weight KG"
-                  keyboardType="decimal-pad"
-                  placeholderTextColor={monoColors.secondary}
-                  className="flex-1 rounded-sm bg-mono-surfaceContainer px-3 py-3 text-mono-primary"
-                  style={{ fontFamily: "Inter_500Medium" }}
-                />
-                <TextInput
-                  value={addReps}
-                  onChangeText={setAddReps}
-                  placeholder="Reps"
-                  keyboardType="number-pad"
-                  placeholderTextColor={monoColors.secondary}
-                  className="flex-1 rounded-sm bg-mono-surfaceContainer px-3 py-3 text-mono-primary"
-                  style={{ fontFamily: "Inter_500Medium" }}
-                />
-              </View>
-              <TextInput
-                value={addNotes}
-                onChangeText={setAddNotes}
-                placeholder="Notes (optional)"
-                placeholderTextColor={monoColors.secondary}
-                className="rounded-sm bg-mono-surfaceContainer px-3 py-3 text-mono-primary"
-                style={{ fontFamily: "Inter_500Medium" }}
-              />
-            </View>
-
-            <View className="mt-5 flex-row gap-3">
-              <Pressable
-                onPress={() => {
-                  setIsAddModalOpen(false);
-                  resetAddForm();
-                }}
-                className="flex-1 items-center justify-center rounded-sm bg-mono-surfaceContainer py-3"
-              >
-                <Text
-                  style={{ fontFamily: "Inter_700Bold" }}
-                  className="text-mono-primary"
-                >
-                  Cancel
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={submitAddEntry}
-                disabled={isAddSubmitting}
-                className="flex-1 items-center justify-center rounded-sm bg-mono-primary py-3"
-              >
-                <Text
-                  style={{ fontFamily: "Inter_700Bold" }}
-                  className="text-white"
-                >
-                  {isAddSubmitting ? "Saving..." : "Save"}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddEntry}
+        lockedExerciseName={exerciseName}
+      />
 
       {/* Action menu modal (long-press) */}
       <Modal
