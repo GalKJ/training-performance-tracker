@@ -1,5 +1,13 @@
-import { useState } from "react";
-import { Modal, Pressable, Text, TextInput, View } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  Keyboard,
+  Modal,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import { monoColors } from "../theme/mono";
 
@@ -29,6 +37,26 @@ export const AddLiftEntryModal = ({
   const [reps, setReps] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const resetForm = () => {
     setExerciseName("");
@@ -76,10 +104,14 @@ export const AddLiftEntryModal = ({
       visible={visible}
       transparent
       animationType="slide"
+      statusBarTranslucent
       onRequestClose={onClose}
     >
       <View className="flex-1 justify-end bg-black/25">
-        <View className="rounded-t-xl bg-mono-background px-4 pb-8 pt-5">
+        <View
+          style={{ paddingBottom: keyboardHeight || 32 }}
+          className="rounded-t-xl bg-mono-background px-4 pt-5"
+        >
           <Text
             style={{ fontFamily: "Inter_800ExtraBold", fontSize: 24 }}
             className="text-mono-primary"
