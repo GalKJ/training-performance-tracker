@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { HistoryStackParamList } from "../navigation/AppNavigator";
@@ -33,6 +33,14 @@ export const HistoryScreen = () => {
     useTrainingData();
   const [query, setQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh().catch(() => {
+        // refresh handles its own error state
+      });
+    }, [refresh]),
+  );
 
   const exerciseSummaries = useMemo<ExerciseSummary[]>(() => {
     return exercises

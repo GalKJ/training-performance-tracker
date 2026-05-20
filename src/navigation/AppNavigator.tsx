@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { monoColors } from "../theme/mono";
 import { WorkoutScreen } from "../screens/WorkoutScreen";
+import { WodDetailScreen } from "../screens/WodDetailScreen";
 import { HistoryScreen } from "../screens/HistoryScreen";
 import { ExerciseDetailScreen } from "../screens/ExerciseDetailScreen";
 import { MetricsScreen } from "../screens/MetricsScreen";
@@ -14,6 +15,11 @@ import { ProfileScreen } from "../screens/ProfileScreen";
 export type HistoryStackParamList = {
   HistoryList: undefined;
   ExerciseDetail: { exerciseId: string; exerciseName: string };
+};
+
+export type WorkoutStackParamList = {
+  WorkoutToday: undefined;
+  WodDetail: { slug: string };
 };
 
 export type RootTabParamList = {
@@ -25,6 +31,7 @@ export type RootTabParamList = {
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const HistoryStack = createNativeStackNavigator<HistoryStackParamList>();
+const WorkoutStack = createNativeStackNavigator<WorkoutStackParamList>();
 
 const HeaderTitle = () => {
   const insets = useSafeAreaInsets();
@@ -45,6 +52,42 @@ const HeaderTitle = () => {
         TRAINING TRACKER
       </Text>
     </View>
+  );
+};
+
+const WorkoutStackNavigator = () => {
+  return (
+    <WorkoutStack.Navigator
+      screenOptions={{
+        contentStyle: { backgroundColor: monoColors.background },
+        headerStyle: { backgroundColor: monoColors.background },
+        headerShadowVisible: false,
+        headerTintColor: monoColors.primary,
+      }}
+    >
+      <WorkoutStack.Screen
+        name="WorkoutToday"
+        component={WorkoutScreen}
+        options={{ headerShown: false }}
+      />
+      <WorkoutStack.Screen
+        name="WodDetail"
+        component={WodDetailScreen}
+        options={({ route }) => ({
+          header: () => <HeaderTitle />,
+          headerShown: true,
+          title: `WOD ${route.params.slug}`,
+          headerStyle: { backgroundColor: monoColors.background },
+          headerTintColor: monoColors.primary,
+          headerTitleStyle: {
+            fontFamily: "Inter_700Bold",
+            fontSize: 18,
+            letterSpacing: -0.5,
+          },
+          headerShadowVisible: false,
+        })}
+      />
+    </WorkoutStack.Navigator>
   );
 };
 
@@ -114,7 +157,7 @@ export const AppNavigator = () => {
           },
         }}
       >
-        <Tab.Screen name="Workout" component={WorkoutScreen} />
+        <Tab.Screen name="Workout" component={WorkoutStackNavigator} />
         <Tab.Screen name="History" component={HistoryStackNavigator} />
         <Tab.Screen name="Metrics" component={MetricsScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
