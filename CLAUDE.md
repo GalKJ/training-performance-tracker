@@ -30,7 +30,7 @@ src/
   lib/            # Business logic and data access
     supabase.ts       # Supabase client init (gracefully handles missing env vars)
     trainingRepository.ts  # CRUD operations (Supabase with AsyncStorage fallback)
-    oneRm.ts          # 1-rep max estimation (Epley variant) and helpers
+    oneRm.ts          # 1-rep max estimation (Brzycki equation) and helpers
   navigation/     # React Navigation setup (bottom tabs + History stack)
   screens/        # Screen components (Workout, History, ExerciseDetail, Metrics, Profile)
   theme/          # Mono theme constants (colors, typography)
