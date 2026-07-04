@@ -4,6 +4,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -38,6 +39,7 @@ export const AddLiftEntryModal = ({
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [showOneRmHint, setShowOneRmHint] = useState(false);
 
   useEffect(() => {
     const showEvent =
@@ -63,6 +65,7 @@ export const AddLiftEntryModal = ({
     setWeightKg("");
     setReps("");
     setNotes("");
+    setShowOneRmHint(false);
   };
 
   const handleClose = () => {
@@ -105,19 +108,74 @@ export const AddLiftEntryModal = ({
       transparent
       animationType="slide"
       statusBarTranslucent
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <View className="flex-1 justify-end bg-black/25">
-        <View
-          style={{ paddingBottom: keyboardHeight || 32 }}
-          className="rounded-t-xl bg-mono-background px-4 pt-5"
+        <ScrollView
+          style={{ maxHeight: "85%" }}
+          contentContainerStyle={{
+            paddingBottom: keyboardHeight || 32,
+            paddingHorizontal: 16,
+            paddingTop: 20,
+          }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          alwaysBounceVertical={false}
+          className="rounded-t-xl bg-mono-background"
         >
-          <Text
-            style={{ fontFamily: "Inter_800ExtraBold", fontSize: 24 }}
-            className="text-mono-primary"
-          >
-            Add Lift Entry
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <Text
+              style={{ fontFamily: "Inter_800ExtraBold", fontSize: 24 }}
+              className="text-mono-primary"
+            >
+              Add Lift Entry
+            </Text>
+            <Pressable
+              onPress={() => setShowOneRmHint((current) => !current)}
+              accessibilityRole="button"
+              accessibilityLabel="How the estimated 1RM is calculated"
+              accessibilityState={{ expanded: showOneRmHint }}
+              hitSlop={8}
+              className="h-7 w-7 items-center justify-center rounded-sm bg-mono-surfaceContainer"
+            >
+              <Text
+                style={{ fontFamily: "Inter_700Bold", fontSize: 14 }}
+                className="text-mono-primary"
+              >
+                ?
+              </Text>
+            </Pressable>
+          </View>
+
+          {showOneRmHint ? (
+            <View className="mt-3 rounded-sm bg-mono-surface px-3 py-3">
+              <Text
+                style={{
+                  fontFamily: "Inter_700Bold",
+                  fontSize: 11,
+                  letterSpacing: 0.5,
+                  textTransform: "uppercase",
+                }}
+                className="text-mono-secondary"
+              >
+                Est 1RM — Brzycki Equation
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                  lineHeight: 20,
+                }}
+                className="mt-1 text-mono-primary"
+              >
+                Your estimated 1RM is calculated from single sets. Enter the
+                weight and the reps you completed in one set, and save each set
+                as its own entry. The estimate is most accurate when a set is
+                taken close to failure at 10 reps or fewer — your best set
+                drives the 1RM shown in Metrics.
+              </Text>
+            </View>
+          ) : null}
 
           {lockedExerciseName ? (
             <View className="mt-2 rounded-sm bg-mono-surfaceContainerLow px-3 py-2">
@@ -205,7 +263,7 @@ export const AddLiftEntryModal = ({
               </Text>
             </Pressable>
           </View>
-        </View>
+        </ScrollView>
       </View>
     </Modal>
   );
