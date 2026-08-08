@@ -4,6 +4,7 @@ import {
   FlatList,
   Modal,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -13,8 +14,14 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { HistoryStackParamList } from "../navigation/AppNavigator";
 import type { LiftEntry } from "../types/domain";
 import { useTrainingData } from "../hooks/useTrainingData";
+import { formatDuration, parseDurationToSeconds } from "../lib/duration";
 import { monoColors } from "../theme/mono";
 import { AddLiftEntryModal } from "../components/AddLiftEntryModal";
+import {
+  parseSplitInputs,
+  SplitTimesInput,
+  TIME_KEYBOARD,
+} from "../components/SplitTimesInput";
 
 type Props = NativeStackScreenProps<HistoryStackParamList, "ExerciseDetail">;
 
@@ -59,6 +66,9 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
   const [editWeightKg, setEditWeightKg] = useState("");
   const [editReps, setEditReps] = useState("");
   const [editNotes, setEditNotes] = useState("");
+  const [editTime, setEditTime] = useState("");
+  const [editSplits, setEditSplits] = useState<string[]>([]);
+  const [editError, setEditError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Add modal state
@@ -70,6 +80,8 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
       weightKg: number;
       reps: number;
       notes: string;
+      durationSeconds: number | null;
+      splitSeconds: number[];
     }) => {
       await addEntry({
         exerciseName: values.exerciseName,
@@ -77,6 +89,8 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
         reps: values.reps,
         performedAt: new Date().toISOString(),
         notes: values.notes,
+        durationSeconds: values.durationSeconds,
+        splitSeconds: values.splitSeconds,
       });
       setIsAddModalOpen(false);
     },
@@ -93,6 +107,13 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
     setEditWeightKg(String(selectedEntry.weightKg));
     setEditReps(String(selectedEntry.reps));
     setEditNotes(selectedEntry.notes ?? "");
+    setEditTime(
+      selectedEntry.durationSeconds
+        ? formatDuration(selectedEntry.durationSeconds)
+        : "",
+    );
+    setEditSplits((selectedEntry.splitSeconds ?? []).map(formatDuration));
+    setEditError(null);
     setIsActionMenuOpen(false);
     setIsEditModalOpen(true);
   }, [selectedEntry]);
@@ -109,9 +130,26 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
       !Number.isFinite(parsedReps) ||
       parsedReps <= 0
     ) {
+      setEditError("Enter a weight and a rep count.");
       return;
     }
 
+    let durationSeconds: number | null = null;
+    if (editTime.trim()) {
+      durationSeconds = parseDurationToSeconds(editTime);
+      if (durationSeconds === null) {
+        setEditError("Time must look like 45, 2:30 or 1:05:00.");
+        return;
+      }
+    }
+
+    const splitSeconds = parseSplitInputs(editSplits);
+    if (splitSeconds === null) {
+      setEditError("Splits must look like 45, 2:30 or 1:05:00.");
+      return;
+    }
+
+    setEditError(null);
     setIsSubmitting(true);
     try {
       await updateEntry({
@@ -120,13 +158,23 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
         reps: parsedReps,
         performedAt: selectedEntry.performedAt,
         notes: editNotes || undefined,
+        durationSeconds,
+        splitSeconds,
       });
       setIsEditModalOpen(false);
       setSelectedEntry(null);
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedEntry, editWeightKg, editReps, editNotes, updateEntry]);
+  }, [
+    selectedEntry,
+    editWeightKg,
+    editReps,
+    editNotes,
+    editTime,
+    editSplits,
+    updateEntry,
+  ]);
 
   const confirmDeleteEntry = useCallback(() => {
     if (!selectedEntry) return;
@@ -174,7 +222,7 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
         className="rounded-sm bg-mono-surface px-3 py-3"
       >
         <View className="flex-row items-start justify-between">
-          <View>
+          <View className="flex-1 pr-3">
             <View className="flex-row items-baseline gap-1">
               <Text
                 style={{ fontFamily: "Inter_800ExtraBold", fontSize: 22 }}
@@ -194,7 +242,18 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
               className="mt-0.5 text-mono-secondary"
             >
               {item.reps} {item.reps === 1 ? "rep" : "reps"}
+              {item.durationSeconds
+                ? ` · ${formatDuration(item.durationSeconds)}`
+                : ""}
             </Text>
+            {item.splitSeconds?.length ? (
+              <Text
+                style={{ fontFamily: "Inter_500Medium", fontSize: 11 }}
+                className="mt-1 text-mono-secondary"
+              >
+                Splits {item.splitSeconds.map(formatDuration).join(" / ")}
+              </Text>
+            ) : null}
           </View>
           <View className="items-end">
             <Text
@@ -360,12 +419,23 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
         onRequestClose={() => setIsEditModalOpen(false)}
       >
         <View className="flex-1 justify-end bg-black/25">
-          <View className="rounded-t-xl bg-mono-background px-4 pb-8 pt-5">
+          <ScrollView
+            style={{ maxHeight: "85%" }}
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              paddingBottom: 32,
+              paddingTop: 20,
+            }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            alwaysBounceVertical={false}
+            className="rounded-t-xl bg-mono-background"
+          >
             <Text
               style={{ fontFamily: "Inter_800ExtraBold", fontSize: 24 }}
               className="text-mono-primary"
             >
-              Edit Lift Entry
+              Edit Entry
             </Text>
 
             <View className="mt-2 rounded-sm bg-mono-surfaceContainerLow px-3 py-2">
@@ -399,6 +469,15 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
                 />
               </View>
               <TextInput
+                value={editTime}
+                onChangeText={setEditTime}
+                placeholder="Time — mm:ss (optional)"
+                keyboardType={TIME_KEYBOARD}
+                placeholderTextColor={monoColors.secondary}
+                className="rounded-sm bg-mono-surfaceContainer px-3 py-3 text-mono-primary"
+                style={{ fontFamily: "Inter_500Medium" }}
+              />
+              <TextInput
                 value={editNotes}
                 onChangeText={setEditNotes}
                 placeholder="Notes (optional)"
@@ -407,6 +486,19 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
                 style={{ fontFamily: "Inter_500Medium" }}
               />
             </View>
+
+            <View className="mt-5">
+              <SplitTimesInput splits={editSplits} onChange={setEditSplits} />
+            </View>
+
+            {editError ? (
+              <Text
+                style={{ fontFamily: "Inter_500Medium" }}
+                className="mt-3 text-mono-secondary"
+              >
+                {editError}
+              </Text>
+            ) : null}
 
             <View className="mt-5 flex-row gap-3">
               <Pressable
@@ -436,7 +528,7 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
                 </Text>
               </Pressable>
             </View>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>

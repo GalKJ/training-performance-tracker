@@ -11,6 +11,10 @@ export type LiftEntry = {
   reps: number;
   performedAt: string;
   notes?: string | null;
+  /** Total time for the entry, in seconds. */
+  durationSeconds?: number | null;
+  /** Individual split times, in seconds, in the order they were recorded. */
+  splitSeconds?: number[] | null;
 };
 
 export type AddLiftEntryInput = {
@@ -19,6 +23,8 @@ export type AddLiftEntryInput = {
   reps: number;
   performedAt: string;
   notes?: string;
+  durationSeconds?: number | null;
+  splitSeconds?: number[] | null;
 };
 
 export type UpdateLiftEntryInput = {
@@ -27,4 +33,6 @@ export type UpdateLiftEntryInput = {
   reps: number;
   performedAt: string;
   notes?: string;
+  durationSeconds?: number | null;
+  splitSeconds?: number[] | null;
 };

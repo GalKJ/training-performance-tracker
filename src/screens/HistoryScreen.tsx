@@ -82,6 +82,8 @@ export const HistoryScreen = () => {
     weightKg: number;
     reps: number;
     notes: string;
+    durationSeconds: number | null;
+    splitSeconds: number[];
   }) => {
     await addEntry({
       exerciseName: values.exerciseName,
@@ -89,6 +91,8 @@ export const HistoryScreen = () => {
       reps: values.reps,
       performedAt: new Date().toISOString(),
       notes: values.notes,
+      durationSeconds: values.durationSeconds,
+      splitSeconds: values.splitSeconds,
     });
     setIsModalOpen(false);
   };
