@@ -47,6 +47,7 @@ docs/
 - **Single hook for data access:** `useTrainingData()` provides exercises, liftEntries, loading/error state, and mutation functions (addEntry, updateEntry, deleteEntry, deleteExerciseById). All screens consume this hook directly.
 - **No auth:** v1 is single-user. Supabase RLS is disabled.
 - **All weights are in kilograms (KG).** No unit conversion exists.
+- **All times are stored as seconds.** `src/lib/duration.ts` parses the `mm:ss` / `h:mm:ss` / plain-seconds forms the UI accepts and formats seconds back for display.
 
 ## Design System (Mono Theme)
 
@@ -72,7 +73,7 @@ Key design rules from the spec:
 Two Supabase tables (see `docs/supabase_schema.sql`):
 
 - **exercises:** `id` (uuid), `name` (unique text), `created_at`
-- **lift_entries:** `id` (uuid), `exercise_id` (FK), `weight_kg`, `reps`, `performed_at`, `notes`, `created_at`
+- **lift_entries:** `id` (uuid), `exercise_id` (FK), `weight_kg`, `reps`, `performed_at`, `notes`, `duration_seconds` (nullable total time), `split_seconds` (nullable jsonb array of split times), `created_at`
 - **exercise_stats** (view): aggregates max weight, last session, entry count per exercise
 
 TypeScript domain types use camelCase (mapped from snake_case DB columns in `trainingRepository.ts`).

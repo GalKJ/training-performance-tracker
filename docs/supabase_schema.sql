@@ -16,8 +16,17 @@ create table if not exists lift_entries (
   reps int not null check (reps > 0),
   performed_at timestamptz not null,
   notes text,
+  -- Total time for the entry, in seconds. Null when the entry was untimed.
+  duration_seconds numeric(8,2) check (duration_seconds is null or duration_seconds > 0),
+  -- Ordered split times, in seconds, e.g. [92.5, 88, 95].
+  split_seconds jsonb,
   created_at timestamptz not null default now()
 );
+
+-- Existing databases: add the timing columns in place.
+alter table lift_entries
+  add column if not exists duration_seconds numeric(8,2),
+  add column if not exists split_seconds jsonb;
 
 create index if not exists idx_lift_entries_exercise_id on lift_entries(exercise_id);
 create index if not exists idx_lift_entries_performed_at on lift_entries(performed_at desc);

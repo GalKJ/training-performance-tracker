@@ -10,7 +10,13 @@ import {
   View,
 } from "react-native";
 
+import { parseDurationToSeconds } from "../lib/duration";
 import { monoColors } from "../theme/mono";
+import {
+  parseSplitInputs,
+  SplitTimesInput,
+  TIME_KEYBOARD,
+} from "./SplitTimesInput";
 
 type AddLiftEntryModalProps = {
   visible: boolean;
@@ -20,6 +26,8 @@ type AddLiftEntryModalProps = {
     weightKg: number;
     reps: number;
     notes: string;
+    durationSeconds: number | null;
+    splitSeconds: number[];
   }) => Promise<void>;
   // When provided, the exercise field is locked to this value and shown as a label.
   lockedExerciseName?: string;
@@ -37,6 +45,9 @@ export const AddLiftEntryModal = ({
   const [weightKg, setWeightKg] = useState("");
   const [reps, setReps] = useState("");
   const [notes, setNotes] = useState("");
+  const [time, setTime] = useState("");
+  const [splits, setSplits] = useState<string[]>([]);
+  const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [showOneRmHint, setShowOneRmHint] = useState(false);
@@ -65,6 +76,9 @@ export const AddLiftEntryModal = ({
     setWeightKg("");
     setReps("");
     setNotes("");
+    setTime("");
+    setSplits([]);
+    setFormError(null);
     setShowOneRmHint(false);
   };
 
@@ -85,9 +99,26 @@ export const AddLiftEntryModal = ({
       !Number.isFinite(parsedReps) ||
       parsedReps <= 0
     ) {
+      setFormError("Enter an exercise, a weight and a rep count.");
       return;
     }
 
+    let durationSeconds: number | null = null;
+    if (time.trim()) {
+      durationSeconds = parseDurationToSeconds(time);
+      if (durationSeconds === null) {
+        setFormError("Time must look like 45, 2:30 or 1:05:00.");
+        return;
+      }
+    }
+
+    const splitSeconds = parseSplitInputs(splits);
+    if (splitSeconds === null) {
+      setFormError("Splits must look like 45, 2:30 or 1:05:00.");
+      return;
+    }
+
+    setFormError(null);
     setIsSubmitting(true);
     try {
       await onSubmit({
@@ -95,6 +126,8 @@ export const AddLiftEntryModal = ({
         weightKg: parsedWeight,
         reps: parsedReps,
         notes,
+        durationSeconds,
+        splitSeconds,
       });
       resetForm();
     } finally {
@@ -128,7 +161,7 @@ export const AddLiftEntryModal = ({
               style={{ fontFamily: "Inter_800ExtraBold", fontSize: 24 }}
               className="text-mono-primary"
             >
-              Add Lift Entry
+              Add Entry
             </Text>
             <Pressable
               onPress={() => setShowOneRmHint((current) => !current)}
@@ -220,6 +253,15 @@ export const AddLiftEntryModal = ({
               />
             </View>
             <TextInput
+              value={time}
+              onChangeText={setTime}
+              placeholder="Time — mm:ss (optional)"
+              keyboardType={TIME_KEYBOARD}
+              placeholderTextColor={monoColors.secondary}
+              className="rounded-sm bg-mono-surfaceContainer px-3 py-3 text-mono-primary"
+              style={{ fontFamily: "Inter_500Medium" }}
+            />
+            <TextInput
               value={notes}
               onChangeText={setNotes}
               placeholder="Notes (optional)"
@@ -229,12 +271,17 @@ export const AddLiftEntryModal = ({
             />
           </View>
 
-          {error ? (
+          {/* Split times */}
+          <View className="mt-5">
+            <SplitTimesInput splits={splits} onChange={setSplits} />
+          </View>
+
+          {formError || error ? (
             <Text
               style={{ fontFamily: "Inter_500Medium" }}
               className="mt-3 text-mono-secondary"
             >
-              {error}
+              {formError ?? error}
             </Text>
           ) : null}
 

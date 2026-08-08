@@ -29,6 +29,15 @@ const mapExerciseRow = (row: any): Exercise => ({
   createdAt: parseRowDate(row.created_at),
 });
 
+const mapSplitSeconds = (value: any): number[] | null => {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const splits = value.map(Number).filter((split) => Number.isFinite(split));
+  return splits.length > 0 ? splits : null;
+};
+
 const mapLiftRow = (row: any): LiftEntry => ({
   id: String(row.id),
   exerciseId: String(row.exercise_id),
@@ -36,6 +45,11 @@ const mapLiftRow = (row: any): LiftEntry => ({
   reps: Number(row.reps),
   performedAt: parseRowDate(row.performed_at),
   notes: row.notes ?? null,
+  durationSeconds:
+    row.duration_seconds === null || row.duration_seconds === undefined
+      ? null
+      : Number(row.duration_seconds),
+  splitSeconds: mapSplitSeconds(row.split_seconds),
 });
 
 const readCache = async (): Promise<CachePayload | null> => {
@@ -173,6 +187,8 @@ export const addLiftEntry = async (input: AddLiftEntryInput): Promise<void> => {
         reps: input.reps,
         performed_at: input.performedAt,
         notes: input.notes ?? null,
+        duration_seconds: input.durationSeconds ?? null,
+        split_seconds: input.splitSeconds?.length ? input.splitSeconds : null,
       });
 
       if (insertLiftResult.error) {
@@ -198,6 +214,8 @@ export const addLiftEntry = async (input: AddLiftEntryInput): Promise<void> => {
     reps: input.reps,
     performedAt: input.performedAt,
     notes: input.notes ?? null,
+    durationSeconds: input.durationSeconds ?? null,
+    splitSeconds: input.splitSeconds?.length ? input.splitSeconds : null,
   };
 
   await writeCache({
@@ -218,6 +236,8 @@ export const updateLiftEntry = async (
           reps: input.reps,
           performed_at: input.performedAt,
           notes: input.notes ?? null,
+          duration_seconds: input.durationSeconds ?? null,
+          split_seconds: input.splitSeconds?.length ? input.splitSeconds : null,
         })
         .eq("id", input.id);
 
@@ -240,6 +260,8 @@ export const updateLiftEntry = async (
           reps: input.reps,
           performedAt: input.performedAt,
           notes: input.notes ?? null,
+          durationSeconds: input.durationSeconds ?? null,
+          splitSeconds: input.splitSeconds?.length ? input.splitSeconds : null,
         }
       : entry,
   );
