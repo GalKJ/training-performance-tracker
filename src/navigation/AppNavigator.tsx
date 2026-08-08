@@ -10,6 +10,7 @@ import { WodDetailScreen } from "../screens/WodDetailScreen";
 import { HistoryScreen } from "../screens/HistoryScreen";
 import { ExerciseDetailScreen } from "../screens/ExerciseDetailScreen";
 import { MetricsScreen } from "../screens/MetricsScreen";
+import { TimersScreen } from "../screens/TimersScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 
 export type HistoryStackParamList = {
@@ -26,6 +27,7 @@ export type RootTabParamList = {
   Workout: undefined;
   History: undefined;
   Metrics: undefined;
+  Timers: undefined;
   Profile: undefined;
 };
 
@@ -160,6 +162,7 @@ export const AppNavigator = () => {
         <Tab.Screen name="Workout" component={WorkoutStackNavigator} />
         <Tab.Screen name="History" component={HistoryStackNavigator} />
         <Tab.Screen name="Metrics" component={MetricsScreen} />
+        <Tab.Screen name="Timers" component={TimersScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
       </Tab.Navigator>
     </NavigationContainer>
