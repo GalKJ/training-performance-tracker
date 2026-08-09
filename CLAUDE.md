@@ -32,7 +32,7 @@ src/
     trainingRepository.ts  # CRUD operations (Supabase with AsyncStorage fallback)
     oneRm.ts          # 1-rep max estimation (Brzycki equation) and helpers
   navigation/     # React Navigation setup (bottom tabs + History stack)
-  screens/        # Screen components (Workout, History, ExerciseDetail, Metrics, Profile)
+  screens/        # Screen components (Workout, WodDetail, History, ExerciseDetail, Metrics, Timers)
   theme/          # Mono theme constants (colors, typography)
   types/          # TypeScript domain types (Exercise, LiftEntry)
 docs/
@@ -91,6 +91,6 @@ The app works fully without these — it will use local AsyncStorage with seeded
 
 ## Navigation
 
-Bottom tabs: **Workout** | **History** (default) | **Metrics** | **Profile**
+Bottom tabs: **Workout** | **History** (default) | **Metrics** | **Timers**
 
 History tab has a nested stack: `HistoryList` -> `ExerciseDetail` (receives `exerciseId` + `exerciseName` as route params). Long-press on a lift entry in ExerciseDetail opens an action menu (edit/delete).
