@@ -96,6 +96,17 @@ const looksLikeWod = (title: string, articleHtml: string): boolean => {
   return /workout of the day/i.test(title);
 };
 
+const REST_DAY_RE = /rest\s+day/i;
+
+/**
+ * crossfit.com publishes rest days on the same URL scheme as workouts — the
+ * title is still "Workout of the Day <slug>", so only the body gives it away
+ * (it opens with a "Rest Day" heading). Match on both to be safe.
+ */
+export const isRestDay = (title: string, bodyText: string): boolean => {
+  return REST_DAY_RE.test(title) || REST_DAY_RE.test(bodyText);
+};
+
 export const parseWodHtml = (slug: string, html: string): Wod | null => {
   const articleMatch = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i);
   const articleHtml = articleMatch?.[1] ?? "";
@@ -114,6 +125,10 @@ export const parseWodHtml = (slug: string, html: string): Wod | null => {
 
   const bodyText = htmlToText(articleHtml);
   if (!bodyText) {
+    return null;
+  }
+
+  if (isRestDay(title, bodyText)) {
     return null;
   }
 

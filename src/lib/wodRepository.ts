@@ -1,7 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import type { Wod } from "../types/wod";
-import { fetchWodBySlug, recentSlugs, slugForDate } from "./crossfitWod";
+import {
+  fetchWodBySlug,
+  isRestDay,
+  recentSlugs,
+  slugForDate,
+} from "./crossfitWod";
 
 const CACHE_KEY = "training-performance-tracker:wod:v1";
 
@@ -68,13 +73,15 @@ export const getRecentWods = async (
 
   return slugs
     .map((slug) => cache[slug])
-    .filter((wod): wod is Wod => wod !== undefined);
+    .filter((wod): wod is Wod => wod !== undefined)
+    .filter((wod) => !isRestDay(wod.title, wod.bodyText));
 };
 
 export const getCachedWodBySlug = async (slug: string): Promise<Wod | null> => {
   const cache = await readCache();
-  if (cache[slug]) {
-    return cache[slug];
+  const cached = cache[slug];
+  if (cached) {
+    return isRestDay(cached.title, cached.bodyText) ? null : cached;
   }
 
   const fetched = await fetchWodBySlug(slug).catch((error) => {
