@@ -13,19 +13,9 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { WorkoutStackParamList } from "../navigation/AppNavigator";
 import type { Wod } from "../types/wod";
 import { useWods } from "../hooks/useWods";
+import { formatWodDate } from "../lib/crossfitWod";
 import { monoColors } from "../theme/mono";
 import { WodView } from "../components/WodView";
-
-const formatRowDate = (isoDate: string): string => {
-  const date = new Date(`${isoDate}T00:00:00`);
-  return date
-    .toLocaleDateString(undefined, {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-    })
-    .toUpperCase();
-};
 
 const teaserFor = (wod: Wod): string => {
   const firstLine = wod.bodyText
@@ -148,7 +138,7 @@ export const WorkoutScreen = () => {
                       }}
                       className="text-mono-secondary"
                     >
-                      {formatRowDate(wod.date)}
+                      {formatWodDate(wod.date)}
                     </Text>
                     <Text
                       style={{
