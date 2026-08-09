@@ -3,20 +3,10 @@ import { Linking, Pressable, Text, View } from "react-native";
 
 import type { SessionBlock, Wod } from "../types/wod";
 import { buildSessionPlan } from "../lib/workoutBuilder";
+import { formatWodDate } from "../lib/crossfitWod";
 
 type Props = {
   wod: Wod;
-};
-
-const formatHeroDate = (isoDate: string): string => {
-  const date = new Date(`${isoDate}T00:00:00`);
-  return date
-    .toLocaleDateString(undefined, {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-    })
-    .toUpperCase();
 };
 
 const formatTitleLine = (title: string): string => {
@@ -88,7 +78,7 @@ export const WodView = ({ wod }: Props) => {
         }}
         className="text-mono-secondary"
       >
-        {formatHeroDate(wod.date)}
+        {formatWodDate(wod.date)}
       </Text>
       <Text
         style={{

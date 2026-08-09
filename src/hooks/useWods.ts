@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { Wod } from "../types/wod";
-import { getRecentWods } from "../lib/wodRepository";
+import { getWodFeed } from "../lib/wodRepository";
 
-const DEFAULT_COUNT = 5;
+/** Days per window — one window up to today, one the same run a year back. */
+const DEFAULT_PER_WINDOW = 5;
 
 type UseWodsResult = {
   wods: Wod[];
@@ -12,7 +13,9 @@ type UseWodsResult = {
   refresh: () => Promise<void>;
 };
 
-export const useWods = (count: number = DEFAULT_COUNT): UseWodsResult => {
+export const useWods = (
+  perWindow: number = DEFAULT_PER_WINDOW,
+): UseWodsResult => {
   const [wods, setWods] = useState<Wod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +25,7 @@ export const useWods = (count: number = DEFAULT_COUNT): UseWodsResult => {
     setIsLoading(true);
 
     try {
-      const result = await getRecentWods(count);
+      const result = await getWodFeed(perWindow);
       setWods(result);
       if (result.length === 0) {
         setError("Couldn't reach crossfit.com — pull to retry.");
@@ -36,7 +39,7 @@ export const useWods = (count: number = DEFAULT_COUNT): UseWodsResult => {
     } finally {
       setIsLoading(false);
     }
-  }, [count]);
+  }, [perWindow]);
 
   useEffect(() => {
     refresh().catch(() => {

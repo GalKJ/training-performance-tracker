@@ -31,6 +31,8 @@ src/
     supabase.ts       # Supabase client init (gracefully handles missing env vars)
     trainingRepository.ts  # CRUD operations (Supabase with AsyncStorage fallback)
     oneRm.ts          # 1-rep max estimation (Brzycki equation) and helpers
+    crossfitWod.ts    # crossfit.com scraping (month archive parser, slug/date helpers)
+    wodRepository.ts  # WOD feed assembly + AsyncStorage cache
   navigation/     # React Navigation setup (bottom tabs + History stack)
   screens/        # Screen components (Workout, WodDetail, History, ExerciseDetail, Metrics, Timers)
   theme/          # Mono theme constants (colors, typography)
@@ -46,6 +48,8 @@ docs/
 - **Offline-first dual data path:** Every repository function in `trainingRepository.ts` tries Supabase first, falls back to AsyncStorage on failure or when Supabase is not configured. Cache is keyed as `training-performance-tracker:v1`.
 - **Single hook for data access:** `useTrainingData()` provides exercises, liftEntries, loading/error state, and mutation functions (addEntry, updateEntry, deleteEntry, deleteExerciseById). All screens consume this hook directly.
 - **No auth:** v1 is single-user. Supabase RLS is disabled.
+- **WODs come from the month archive, not per-date pages.** `crossfit.com/<slug>` only sometimes arrives server-rendered — a cold URL returns a JS shell with no workout in the HTML, which `fetch` cannot execute. `crossfit.com/workout/YYYY/MM` is always server-rendered and carries every day of the month, so one request covers a whole window. Cache is keyed as `training-performance-tracker:wod:v1`.
+- **The Workout tab shows two windows:** 5 workouts back from today, then 5 back from the same date a year earlier. Rest days are excluded (`isRestDay`) and skipped rather than counted, so each window looks back up to 14 days to find its 5.
 - **All weights are in kilograms (KG).** No unit conversion exists.
 - **All times are stored as seconds.** `src/lib/duration.ts` parses the `mm:ss` / `h:mm:ss` / plain-seconds forms the UI accepts and formats seconds back for display.
 
