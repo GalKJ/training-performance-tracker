@@ -130,6 +130,12 @@ export const AddLiftEntryModal = ({
         splitSeconds,
       });
       resetForm();
+    } catch (submitError) {
+      setFormError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Could not save this entry.",
+      );
     } finally {
       setIsSubmitting(false);
     }

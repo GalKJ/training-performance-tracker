@@ -52,6 +52,26 @@ const mapLiftRow = (row: any): LiftEntry => ({
   splitSeconds: mapSplitSeconds(row.split_seconds),
 });
 
+// PostgREST reports a column the app writes but the table lacks as PGRST204.
+// That means the database is behind docs/supabase_schema.sql, so say so rather
+// than leaking the raw schema-cache wording.
+const describeWriteFailure = (context: string, error: any): Error => {
+  console.warn(`[trainingRepository] ${context}:`, error);
+
+  if (error?.code === "PGRST204") {
+    return new Error(
+      `${context}. Your Supabase tables are missing a column the app writes — run docs/supabase_schema.sql in the SQL editor.`,
+    );
+  }
+
+  const message =
+    typeof error?.message === "string" && error.message
+      ? error.message
+      : "Supabase rejected the request.";
+
+  return new Error(`${context}. ${message}`);
+};
+
 const readCache = async (): Promise<CachePayload | null> => {
   const raw = await AsyncStorage.getItem(CACHE_KEY);
   if (!raw) {
@@ -197,7 +217,9 @@ export const addLiftEntry = async (input: AddLiftEntryInput): Promise<void> => {
 
       return;
     } catch (error) {
-      console.warn("[trainingRepository] addLiftEntry falling back to cache:", error);
+      // Reads prefer Supabase, so a cache-only write would be silently wiped by
+      // the next successful fetch. Surface the failure instead of hiding it.
+      throw describeWriteFailure("Could not save this entry", error);
     }
   }
 
@@ -247,7 +269,7 @@ export const updateLiftEntry = async (
 
       return;
     } catch (error) {
-      console.warn("[trainingRepository] updateLiftEntry falling back to cache:", error);
+      throw describeWriteFailure("Could not update this entry", error);
     }
   }
 
@@ -283,7 +305,7 @@ export const deleteLiftEntry = async (id: string): Promise<void> => {
 
       return;
     } catch (error) {
-      console.warn("[trainingRepository] deleteLiftEntry falling back to cache:", error);
+      throw describeWriteFailure("Could not delete this entry", error);
     }
   }
 
@@ -318,7 +340,7 @@ export const deleteExercise = async (id: string): Promise<void> => {
 
       return;
     } catch (error) {
-      console.warn("[trainingRepository] deleteExercise falling back to cache:", error);
+      throw describeWriteFailure("Could not delete this exercise", error);
     }
   }
 
