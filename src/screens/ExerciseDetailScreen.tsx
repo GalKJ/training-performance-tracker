@@ -86,6 +86,7 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
       notes: string;
       durationSeconds: number | null;
       splitSeconds: number[];
+      isWorkout: boolean;
     }) => {
       await addEntry({
         exerciseName: values.exerciseName,
@@ -95,6 +96,7 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
         notes: values.notes,
         durationSeconds: values.durationSeconds,
         splitSeconds: values.splitSeconds,
+        isWorkout: values.isWorkout,
       });
       setIsAddModalOpen(false);
     },

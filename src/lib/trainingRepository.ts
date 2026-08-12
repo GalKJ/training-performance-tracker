@@ -26,6 +26,7 @@ const parseRowDate = (value: string | null | undefined): string => {
 const mapExerciseRow = (row: any): Exercise => ({
   id: String(row.id),
   name: String(row.name),
+  isWorkout: row.is_workout === true,
   createdAt: parseRowDate(row.created_at),
 });
 
@@ -79,7 +80,15 @@ const readCache = async (): Promise<CachePayload | null> => {
   }
 
   try {
-    return JSON.parse(raw) as CachePayload;
+    const parsed = JSON.parse(raw) as CachePayload;
+    return {
+      // Caches written before the WOD flag existed have no is_workout value.
+      exercises: (parsed.exercises ?? []).map((exercise) => ({
+        ...exercise,
+        isWorkout: exercise.isWorkout === true,
+      })),
+      liftEntries: parsed.liftEntries ?? [],
+    };
   } catch {
     return null;
   }
@@ -104,24 +113,39 @@ const fallbackData = async (): Promise<CachePayload> => {
   return seeded;
 };
 
+// Ticking "Workout" flags the exercise; leaving it clear never un-flags an
+// exercise that is already a WOD, so a forgotten tick can't reclassify it.
 const getOrCreateExerciseId = async (
   exerciseName: string,
   exercises: Exercise[],
+  isWorkout: boolean,
 ): Promise<{ exerciseId: string; exercises: Exercise[] }> => {
   const normalizedName = exerciseName.trim().toLowerCase();
   const existingExercise = exercises.find(
     (exercise) => exercise.name.toLowerCase() === normalizedName,
   );
   if (existingExercise) {
-    return { exerciseId: existingExercise.id, exercises };
+    if (!isWorkout || existingExercise.isWorkout) {
+      return { exerciseId: existingExercise.id, exercises };
+    }
+
+    return {
+      exerciseId: existingExercise.id,
+      exercises: exercises.map((exercise) =>
+        exercise.id === existingExercise.id
+          ? { ...exercise, isWorkout: true }
+          : exercise,
+      ),
+    };
   }
 
   const exerciseId = buildId("ex");
-  const updatedExercises = [
+  const updatedExercises: Exercise[] = [
     ...exercises,
     {
       id: exerciseId,
       name: exerciseName.trim(),
+      isWorkout,
       createdAt: new Date().toISOString(),
     },
   ];
@@ -172,6 +196,8 @@ export const addLiftEntry = async (input: AddLiftEntryInput): Promise<void> => {
     throw new Error("Exercise name is required.");
   }
 
+  const isWorkout = input.isWorkout === true;
+
   if (isSupabaseConfigured && supabase) {
     try {
       const existingExerciseResult = await supabase
@@ -190,7 +216,7 @@ export const addLiftEntry = async (input: AddLiftEntryInput): Promise<void> => {
       if (!exerciseId) {
         const insertExerciseResult = await supabase
           .from("exercises")
-          .insert({ name: sanitizedName })
+          .insert({ name: sanitizedName, is_workout: isWorkout })
           .select("*")
           .single();
 
@@ -199,6 +225,15 @@ export const addLiftEntry = async (input: AddLiftEntryInput): Promise<void> => {
         }
 
         exerciseId = String(insertExerciseResult.data.id);
+      } else if (isWorkout && existingExerciseResult.data?.is_workout !== true) {
+        const flagResult = await supabase
+          .from("exercises")
+          .update({ is_workout: true })
+          .eq("id", exerciseId);
+
+        if (flagResult.error) {
+          throw flagResult.error;
+        }
       }
 
       const insertLiftResult = await supabase.from("lift_entries").insert({
@@ -227,6 +262,7 @@ export const addLiftEntry = async (input: AddLiftEntryInput): Promise<void> => {
   const { exerciseId, exercises } = await getOrCreateExerciseId(
     sanitizedName,
     snapshot.exercises,
+    isWorkout,
   );
 
   const newLiftEntry: LiftEntry = {

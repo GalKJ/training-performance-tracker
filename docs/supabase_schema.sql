@@ -6,8 +6,15 @@ create extension if not exists pgcrypto;
 create table if not exists exercises (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
+  -- True when the exercise is a WOD rather than a straight lift. Drives the
+  -- Lift / WOD tabs on the History and Metrics screens.
+  is_workout boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+-- Existing databases: add the WOD flag in place.
+alter table exercises
+  add column if not exists is_workout boolean not null default false;
 
 create table if not exists lift_entries (
   id uuid primary key default gen_random_uuid(),
@@ -37,10 +44,12 @@ select
   e.name,
   max(le.weight_kg) as max_weight_kg,
   max(le.performed_at) as last_session_at,
-  count(le.id) as total_entries
+  count(le.id) as total_entries,
+  -- Appended last: `create or replace view` can only add columns at the end.
+  e.is_workout
 from exercises e
 left join lift_entries le on le.exercise_id = e.id
-group by e.id, e.name;
+group by e.id, e.name, e.is_workout;
 
 -- v1 is single-user/no-auth; keep RLS off until auth is introduced.
 alter table exercises disable row level security;

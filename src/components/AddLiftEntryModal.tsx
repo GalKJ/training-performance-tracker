@@ -28,6 +28,7 @@ type AddLiftEntryModalProps = {
     notes: string;
     durationSeconds: number | null;
     splitSeconds: number[];
+    isWorkout: boolean;
   }) => Promise<void>;
   // When provided, the exercise field is locked to this value and shown as a label.
   lockedExerciseName?: string;
@@ -47,6 +48,7 @@ export const AddLiftEntryModal = ({
   const [notes, setNotes] = useState("");
   const [time, setTime] = useState("");
   const [splits, setSplits] = useState<string[]>([]);
+  const [isWorkout, setIsWorkout] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -78,6 +80,7 @@ export const AddLiftEntryModal = ({
     setNotes("");
     setTime("");
     setSplits([]);
+    setIsWorkout(false);
     setFormError(null);
     setShowOneRmHint(false);
   };
@@ -128,6 +131,7 @@ export const AddLiftEntryModal = ({
         notes,
         durationSeconds,
         splitSeconds,
+        isWorkout,
       });
       resetForm();
     } catch (submitError) {
@@ -275,6 +279,40 @@ export const AddLiftEntryModal = ({
               className="rounded-sm bg-mono-surfaceContainer px-3 py-3 text-mono-primary"
               style={{ fontFamily: "Inter_500Medium" }}
             />
+
+            <Pressable
+              onPress={() => setIsWorkout((current) => !current)}
+              accessibilityRole="checkbox"
+              accessibilityLabel="Workout"
+              accessibilityHint="Files this exercise under WOD instead of Lift"
+              accessibilityState={{ checked: isWorkout }}
+              className="flex-row items-center gap-3 rounded-sm bg-mono-surfaceContainer px-3 py-3"
+            >
+              <View
+                className={`h-5 w-5 items-center justify-center rounded-sm ${
+                  isWorkout ? "bg-mono-primary" : "bg-mono-surfaceDim"
+                }`}
+              >
+                {isWorkout ? (
+                  <Text
+                    style={{
+                      fontFamily: "Inter_900Black",
+                      fontSize: 12,
+                      lineHeight: 14,
+                    }}
+                    className="text-mono-background"
+                  >
+                    ✓
+                  </Text>
+                ) : null}
+              </View>
+              <Text
+                style={{ fontFamily: "Inter_500Medium" }}
+                className="text-mono-primary"
+              >
+                Workout
+              </Text>
+            </Pressable>
           </View>
 
           {/* Split times */}

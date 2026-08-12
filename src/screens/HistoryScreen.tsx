@@ -11,9 +11,11 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import type { HistoryStackParamList } from "../navigation/AppNavigator";
+import type { ExerciseCategory } from "../types/domain";
 import { useTrainingData } from "../hooks/useTrainingData";
 import { monoColors } from "../theme/mono";
 import { AddLiftEntryModal } from "../components/AddLiftEntryModal";
+import { CategoryTabs } from "../components/CategoryTabs";
 
 type ExerciseSummary = {
   id: string;
@@ -32,6 +34,7 @@ export const HistoryScreen = () => {
   const { exercises, liftEntries, isLoading, error, addEntry, refresh } =
     useTrainingData();
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<ExerciseCategory>("lift");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useFocusEffect(
@@ -44,6 +47,9 @@ export const HistoryScreen = () => {
 
   const exerciseSummaries = useMemo<ExerciseSummary[]>(() => {
     return exercises
+      .filter((exercise) =>
+        category === "wod" ? exercise.isWorkout : !exercise.isWorkout,
+      )
       .map((exercise) => {
         const entries = liftEntries.filter(
           (entry) => entry.exerciseId === exercise.id,
@@ -75,7 +81,7 @@ export const HistoryScreen = () => {
         summary.name.toLowerCase().includes(query.trim().toLowerCase()),
       )
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [exercises, liftEntries, query]);
+  }, [category, exercises, liftEntries, query]);
 
   const handleAddEntry = async (values: {
     exerciseName: string;
@@ -84,6 +90,7 @@ export const HistoryScreen = () => {
     notes: string;
     durationSeconds: number | null;
     splitSeconds: number[];
+    isWorkout: boolean;
   }) => {
     await addEntry({
       exerciseName: values.exerciseName,
@@ -93,7 +100,18 @@ export const HistoryScreen = () => {
       notes: values.notes,
       durationSeconds: values.durationSeconds,
       splitSeconds: values.splitSeconds,
+      isWorkout: values.isWorkout,
     });
+    // Land the user on the tab the entry was actually filed under — an
+    // unticked box leaves an already-flagged exercise on the WOD tab.
+    const existing = exercises.find(
+      (exercise) =>
+        exercise.name.toLowerCase() ===
+        values.exerciseName.trim().toLowerCase(),
+    );
+    setCategory(
+      values.isWorkout || existing?.isWorkout ? "wod" : "lift",
+    );
     setIsModalOpen(false);
   };
 
@@ -109,6 +127,10 @@ export const HistoryScreen = () => {
       >
         EXERCISE{"\n"}HISTORY
       </Text>
+
+      <View className="mt-4">
+        <CategoryTabs value={category} onChange={setCategory} />
+      </View>
 
       <TextInput
         value={query}
@@ -189,7 +211,11 @@ export const HistoryScreen = () => {
                 style={{ fontFamily: "Inter_500Medium" }}
                 className="text-mono-secondary"
               >
-                No exercises match your search.
+                {query.trim()
+                  ? "No exercises match your search."
+                  : category === "wod"
+                    ? "No workouts yet — tick Workout when adding an entry."
+                    : "No lifts yet."}
               </Text>
             </View>
           }

@@ -8,9 +8,10 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
+import { CategoryTabs } from "../components/CategoryTabs";
 import { useTrainingData } from "../hooks/useTrainingData";
 import { getBestOneRepMax, roundToNearestHalf } from "../lib/oneRm";
-import type { LiftEntry } from "../types/domain";
+import type { ExerciseCategory, LiftEntry } from "../types/domain";
 import { monoColors } from "../theme/mono";
 
 type MatrixCell = {
@@ -34,6 +35,7 @@ const buildRanking = (entries: LiftEntry[]) => {
 
 export const MetricsScreen = () => {
   const { exercises, liftEntries, isLoading, refresh } = useTrainingData();
+  const [category, setCategory] = useState<ExerciseCategory>("lift");
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
     null,
   );
@@ -44,20 +46,30 @@ export const MetricsScreen = () => {
     }, [refresh]),
   );
 
+  const visibleExercises = useMemo(
+    () =>
+      exercises.filter((exercise) =>
+        category === "wod" ? exercise.isWorkout : !exercise.isWorkout,
+      ),
+    [category, exercises],
+  );
+
+  // Switching tabs strands the previous selection, so fall back to the first
+  // exercise of the tab now showing.
   const selectedExercise = useMemo(() => {
-    if (exercises.length === 0) {
+    if (visibleExercises.length === 0) {
       return null;
     }
 
     if (!selectedExerciseId) {
-      return exercises[0];
+      return visibleExercises[0];
     }
 
     return (
-      exercises.find((exercise) => exercise.id === selectedExerciseId) ??
-      exercises[0]
+      visibleExercises.find((exercise) => exercise.id === selectedExerciseId) ??
+      visibleExercises[0]
     );
-  }, [exercises, selectedExerciseId]);
+  }, [visibleExercises, selectedExerciseId]);
 
   const selectedEntries = useMemo(() => {
     if (!selectedExercise) {
@@ -98,13 +110,18 @@ export const MetricsScreen = () => {
       className="flex-1 bg-mono-background"
       contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 30 }}
     >
+      {/* Lift / WOD selector */}
+      <View className="pt-3">
+        <CategoryTabs value={category} onChange={setCategory} />
+      </View>
+
       {/* Exercise selector */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: 8, paddingVertical: 8 }}
       >
-        {exercises.map((exercise) => {
+        {visibleExercises.map((exercise) => {
           const isActive = selectedExercise?.id === exercise.id;
           return (
             <Pressable
@@ -127,6 +144,19 @@ export const MetricsScreen = () => {
         })}
       </ScrollView>
 
+      {!selectedExercise ? (
+        <View className="mt-4 rounded-sm bg-mono-surfaceContainerLow px-4 py-4">
+          <Text
+            style={{ fontFamily: "Inter_500Medium" }}
+            className="text-mono-secondary"
+          >
+            {category === "wod"
+              ? "No workouts yet — tick Workout when adding an entry."
+              : "No lifts yet."}
+          </Text>
+        </View>
+      ) : (
+        <>
       {/* Large exercise name */}
       <Text
         style={{
@@ -232,6 +262,8 @@ export const MetricsScreen = () => {
           </View>
         ))}
       </View>
+        </>
+      )}
     </ScrollView>
   );
 };

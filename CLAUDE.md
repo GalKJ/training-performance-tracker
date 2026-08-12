@@ -50,6 +50,7 @@ docs/
 - **No auth:** v1 is single-user. Supabase RLS is disabled.
 - **WODs come from the month archive, not per-date pages.** `crossfit.com/<slug>` only sometimes arrives server-rendered — a cold URL returns a JS shell with no workout in the HTML, which `fetch` cannot execute. `crossfit.com/workout/YYYY/MM` is always server-rendered and carries every day of the month, so one request covers a whole window. Cache is keyed as `training-performance-tracker:wod:v1`.
 - **The Workout tab shows two windows:** 5 workouts back from today, then 5 back from the same date a year earlier. Rest days are excluded (`isRestDay`) and skipped rather than counted, so each window looks back up to 14 days to find its 5.
+- **Exercises are either a lift or a WOD.** The "Workout" checkbox in the Add Entry modal sets `is_workout` on the exercise; History and Metrics each render a Lift / WOD tab pair (`CategoryTabs`) that filters on it. Ticking the box flags the exercise, but leaving it clear never un-flags one that is already a WOD.
 - **All weights are in kilograms (KG).** No unit conversion exists.
 - **All times are stored as seconds.** `src/lib/duration.ts` parses the `mm:ss` / `h:mm:ss` / plain-seconds forms the UI accepts and formats seconds back for display.
 
@@ -76,7 +77,7 @@ Key design rules from the spec:
 
 Two Supabase tables (see `docs/supabase_schema.sql`):
 
-- **exercises:** `id` (uuid), `name` (unique text), `created_at`
+- **exercises:** `id` (uuid), `name` (unique text), `is_workout` (bool, WOD vs lift), `created_at`
 - **lift_entries:** `id` (uuid), `exercise_id` (FK), `weight_kg`, `reps`, `performed_at`, `notes`, `duration_seconds` (nullable total time), `split_seconds` (nullable jsonb array of split times), `created_at`
 - **exercise_stats** (view): aggregates max weight, last session, entry count per exercise
 

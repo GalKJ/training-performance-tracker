@@ -1,8 +1,13 @@
 export type Exercise = {
   id: string;
   name: string;
+  /** True when the exercise is a WOD rather than a straight lift. */
+  isWorkout: boolean;
   createdAt: string;
 };
+
+/** The two buckets the History and Metrics screens split exercises into. */
+export type ExerciseCategory = "lift" | "wod";
 
 export type LiftEntry = {
   id: string;
@@ -25,6 +30,8 @@ export type AddLiftEntryInput = {
   notes?: string;
   durationSeconds?: number | null;
   splitSeconds?: number[] | null;
+  /** When true, flags the entry's exercise as a WOD. */
+  isWorkout?: boolean;
 };
 
 export type UpdateLiftEntryInput = {
