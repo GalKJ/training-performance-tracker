@@ -34,6 +34,10 @@ const formatDate = (iso: string): string => {
   });
 };
 
+const describeError = (error: unknown): string => {
+  return error instanceof Error ? error.message : "Something went wrong.";
+};
+
 export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
   const { exerciseId, exerciseName } = route.params;
   const {
@@ -163,6 +167,12 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
       });
       setIsEditModalOpen(false);
       setSelectedEntry(null);
+    } catch (submitError) {
+      setEditError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Could not update this entry.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -189,8 +199,12 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
-            await deleteEntry(selectedEntry.id);
-            setSelectedEntry(null);
+            try {
+              await deleteEntry(selectedEntry.id);
+              setSelectedEntry(null);
+            } catch (deleteError) {
+              Alert.alert("Delete Failed", describeError(deleteError));
+            }
           },
         },
       ],
@@ -207,8 +221,12 @@ export const ExerciseDetailScreen = ({ route, navigation }: Props) => {
           text: "Delete All",
           style: "destructive",
           onPress: async () => {
-            await deleteExerciseById(exerciseId);
-            navigation.goBack();
+            try {
+              await deleteExerciseById(exerciseId);
+              navigation.goBack();
+            } catch (deleteError) {
+              Alert.alert("Delete Failed", describeError(deleteError));
+            }
           },
         },
       ],
